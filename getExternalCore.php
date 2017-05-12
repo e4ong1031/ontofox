@@ -460,6 +460,7 @@ WHERE
 			?s1 owl:intersectionOf ?s2 .
 			?s2 rdf:first ?s 
 		}
+		FILTER ( ?s != ?o )
     }
   } OPTION (TRANSITIVE, t_in(?o), t_out(?s)).
   FILTER (?o= <$import_term>)
@@ -560,6 +561,7 @@ WHERE
 			?s1 owl:intersectionOf ?s2 .
 			?s2 rdf:first ?s 
 		}
+		FILTER ( ?s != ?o )
     }
   } OPTION (TRANSITIVE, t_in(?s), t_out(?o)).
   FILTER (?s= <$import_term>)
@@ -623,39 +625,47 @@ FROM <$ontology_uri>";
 			}
 			else {
 				if ($includeAllAnnotationProperties) {
-					$querystring = "
+					/* 2017/05/12: Fix too many unprocess terms */
+					$unprocessed_iris_chunks = array_chunk( $unprocessed_iris, 1000, true );
+					foreach( $unprocessed_iris_chunks as $unprocessed_iris_chunk ) {
+						$querystring = "
 CONSTRUCT {?s ?p ?o}
 FROM <$ontology_uri>
 WHERE {
 {?s ?p ?o.
 ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AnnotationProperty>.
 FILTER (?s in (<".join('>
-, <', array_keys($unprocessed_iris)).">))
+, <', array_keys($unprocessed_iris_chunk)).">))
 }
 UNION 
 {?s ?p ?o.
 FILTER (?p in (<http://www.w3.org/2000/01/rdf-schema#label>)).
 FILTER (?s in (<".join('>
-, <', array_keys($unprocessed_iris)).">))
+, <', array_keys($unprocessed_iris_chunk)).">))
 }
 }
-";					
-					$querystring = formatQuery($querystring);
-					$strQueryPrint .= $querystring . "\n\n====================================================================\n\n";
-		
-					$fields = array();
-					$fields['default-graph-uri'] = $ontology_uri;
-					$fields['format'] = 'application/rdf+xml';
-					$fields['debug'] = 'on';
-					$fields['query'] = $querystring;
-//					print("<!--$querystring-->\n");
+";
+						$querystring = formatQuery($querystring);
+						$strQueryPrint .= $querystring . "\n\n====================================================================\n\n";
+						
+						$fields = array();
+						$fields['default-graph-uri'] = $ontology_uri;
+						$fields['format'] = 'application/rdf+xml';
+						$fields['debug'] = 'on';
+						$fields['query'] = $querystring;
+//						print("<!--$querystring-->\n");
 					
-					$rdf .= curl_post_contents($server_endpoint, $fields);
+						$rdf .= curl_post_contents($server_endpoint, $fields);
+					}
+					/* End 2017/05/12 */
 				}
 				
 				foreach ($annotation_iris_to_include as $annotation_iri => $mapping) {
-					if ($mapping['action']=='copyTo') {
-						$querystring = "
+					/* 2017/05/12: Fix too many unprocess terms */
+                                        $unprocessed_iris_chunks = array_chunk( $unprocessed_iris, 1000, true );
+                                        foreach( $unprocessed_iris_chunks as $unprocessed_iris_chunk ) {
+						if ($mapping['action']=='copyTo') {
+							$querystring = "
 CONSTRUCT {
 ?s <$annotation_iri> ?o.
 ?s <{$mapping['iri']}> ?o
@@ -663,12 +673,12 @@ CONSTRUCT {
 FROM <$ontology_uri>
 WHERE {?s <$annotation_iri> ?o.
 FILTER (?s in (<".join('>
-, <', array_keys($unprocessed_iris)).">))
+, <', array_keys($unprocessed_iris_chunk)).">))
 }
-";		
-					}
-					elseif ($mapping['action']=='mapTo') {
-						$querystring = "
+";
+						}
+						elseif ($mapping['action']=='mapTo') {
+							$querystring = "
 CONSTRUCT {
 ?s <{$mapping['iri']}> ?o.
 ?s <{$mapping['iri']}> ?o2
@@ -678,19 +688,19 @@ WHERE {
 {?s <$annotation_iri> ?oa .
 ?oa <http://www.w3.org/2000/01/rdf-schema#label> ?o.
 FILTER (?s in (<".join('>
-, <', array_keys($unprocessed_iris)).">))
+, <', array_keys($unprocessed_iris_chunk)).">))
 }
 UNION
 {?s <$annotation_iri> ?o2.
 FILTER (isLiteral(?o2)).
 FILTER (?s in (<".join('>
-, <', array_keys($unprocessed_iris)).">))
+, <', array_keys($unprocessed_iris_chunk)).">))
 }
 }
-";		
-					}
-					else {
-						$querystring = "
+";
+						}
+						else {
+							$querystring = "
 CONSTRUCT {
 ?s <$annotation_iri> ?o
 }
@@ -698,24 +708,25 @@ FROM <$ontology_uri>
 WHERE {
 ?s <$annotation_iri> ?o.
 FILTER (?s in (<".join('>
-, <', array_keys($unprocessed_iris)).">))
+, <', array_keys($unprocessed_iris_chunk)).">))
 }
 
 ";		
+						}
+					
+						$querystring = formatQuery($querystring);
+						$strQueryPrint .= $querystring . "\n\n====================================================================\n\n";
 						
+						$fields = array();
+						$fields['default-graph-uri'] = $ontology_uri;
+						$fields['format'] = 'application/rdf+xml';
+						$fields['debug'] = 'on';
+						$fields['query'] = $querystring;
+//						print("<!--$querystring-->\n");
+									
+						$rdf .= curl_post_contents($server_endpoint, $fields);
 					}
-					
-					$querystring = formatQuery($querystring);
-					$strQueryPrint .= $querystring . "\n\n====================================================================\n\n";
-		
-					$fields = array();
-					$fields['default-graph-uri'] = $ontology_uri;
-					$fields['format'] = 'application/rdf+xml';
-					$fields['debug'] = 'on';
-					$fields['query'] = $querystring;
-	//				print("<!--$querystring-->\n");
-					
-					$rdf .= curl_post_contents($server_endpoint, $fields);
+					/* End 2017/05/12 */
 				}
 			}
 			
