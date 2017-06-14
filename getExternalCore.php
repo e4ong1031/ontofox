@@ -806,14 +806,10 @@ FILTER (?s in (<".join('>
 						
 							# Reformat namespace
 							if ( isset( $lines[$i] ) && preg_match( '/<(\w+?):(\w+)/', $line, $tmp_match) ) {
-								if ( !array_search( $tmp_match[1], $outputNSs ) ) {
-									$lines[$i] = str_replace( $tmp_match[1], $outputNSs[$xmlns[$tmp_match[1]]], $line );
-								}
+								$lines[$i] = str_replace( $tmp_match[1], $outputNSs[$xmlns[$tmp_match[1]]], $line );
 							}
 							if ( isset( $lines[$i] ) && preg_match( '/<\/(\w+?):(\w+)/', $line, $tmp_match) ) {
-								if ( !array_search( $tmp_match[1], $outputNSs ) ) {
-									$lines[$i] = str_replace( $tmp_match[1], $outputNSs[$xmlns[$tmp_match[1]]], $line );
-								}
+								$lines[$i] = str_replace( $tmp_match[1], $outputNSs[$xmlns[$tmp_match[1]]], $line );
 							}
 						
 							# For backward-compatibility with Virtuoso version 6.2.1
