@@ -1,6 +1,7 @@
 <?php 
 /**
  * Author: Zuoshuang Xiang
+ * Author: Edison ong
  * The University Of Michigan
  * He Group
  * Date: 2010-03-04
@@ -998,6 +999,16 @@ FILTER (?s in (<".join('>
 		
 		
 		$strOutput = preg_replace('/<rdf:Description rdf:about="(\S+)"><rdf:type rdf:resource="http:\/\/www.w3.org\/2002\/07\/owl#ObjectProperty"\/><\/rdf:Description>/', "<owl:ObjectProperty rdf:about=\"$1\"/>", $strOutput);
+		
+                /* 2017/06/27: Remove ontology definitions of all importing ontologies to avoid overlaying the output ontology URI */
+                $strOutput = preg_replace( '/<rdf:Description[^<]*<rdf:type rdf:resource="http:\/\/www\.w3\.org\/2002\/07\/owl#Ontology"[^<]*<\/rdf:Description>/', '', $strOu$
+                foreach ( $annotation_iris_to_include as $annotation_iri => $mapping ) {
+                        if ( $mapping['action'] == 'mapTo' ) {
+                                $strOutput = preg_replace( '/' . preg_quote( $annotation_iri, '/' ) . '/', '', $strOutput );
+                        }
+                }
+                $strOutput = preg_replace( '/<[^\/]*?(?="")""[^\/]?\/[^>]?>/', '', $strOutput );
+                /* End 2017/06/27 */
 		
 		foreach ($outputNSs as $NSTmp => $prefixTmp) {
 			$strOutput = "
