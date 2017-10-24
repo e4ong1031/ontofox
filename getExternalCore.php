@@ -812,6 +812,14 @@ FILTER (?s in (<".join('>
 									$tmp_unprocessed_iris[$tmp_iri] = 'NA';
 								}
 							}
+							if ( isset( $lines[$i] ) && 
+									( strpos( $line, "rdfs:subClassOf" ) !== false || strpos( $line, "rdfs:subPropertyOf" ) !== false )
+									&& preg_match( '/rdf:resource="([^"]+)"/', $line, $tmp_match) ) {
+								$tmp_iri = $tmp_match[1];
+								if ( !isset( $processed_iris[$tmp_iri] ) ) {
+									$tmp_unprocessed_iris[$tmp_iri] = 'NA';
+								}
+							}
 						
 							# Reformat namespace
 							if ( isset( $lines[$i] ) && preg_match( '/<(\w+?):(\w+)/', $line, $tmp_match) ) {
