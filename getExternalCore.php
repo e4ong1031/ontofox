@@ -776,13 +776,10 @@ FILTER (?s in (<".join('>
 								foreach ( $lines as $i => $line ) {
 									if ( isset( $lines[$i] ) && strpos( $line, "rdfs:subClassOf" ) !== false ) {
 										unset( $lines[$i] );
-										break;
 									}
 									if ( isset( $lines[$i] ) && strpos( $line, "rdfs:subPropertyOf" ) !== false ) {
 										unset( $lines[$i] );
-										break;
 									}
-									
 								}
 							}
 						}
@@ -898,6 +895,9 @@ FILTER (?s in (<".join('>
 			}
 		/* End 2017/02/23 */
 			$unprocessed_iris = $tmp_unprocessed_iris;
+//			print_r( $processed_iris );
+//			print_r( $unprocessed_iris );
+//			print_r( $strOutput );
 		}
 //		print_r( $related_terms );
 		
